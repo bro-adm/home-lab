@@ -1,0 +1,6 @@
+helmCharts:
+  - name: cassandra
+    repo: https://charts.bitnami.com/bitnami
+    version: 12.3.5
+    releaseName: test-v1
+    valuesFile: values.yaml
