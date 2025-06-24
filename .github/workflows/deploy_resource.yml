@@ -38,6 +38,12 @@ jobs:
     steps:
         - uses: actions/checkout@v4
 
+        - name: Debug template layout
+          run: |
+            echo "TEMPLATE_PATH: templates/${{ github.event.inputs.template }}/${{ github.event.inputs.version }}"
+            find templates/${{ github.event.inputs.template }} -type f
+
+
         - name: Validate and Set Requirements
           run: |
             TEMPLATE="${{ github.event.inputs.template }}"
@@ -69,11 +75,11 @@ jobs:
             fi
 
             # Copy the values.yaml from the template
-            if [ -f "$TEMPLATE_PATH/values.yaml" ]; then
+            if [ -f "$TEMPLATE_PATH/chart/values.yaml" ]; then
               echo "📄 Copying values.yaml to $RESOURCE_PATH"
-              cp "$TEMPLATE_PATH/values.yaml" "$RESOURCE_PATH/values.yaml"
+              cp "$TEMPLATE_PATH/chart/values.yaml" "$RESOURCE_PATH/values.yaml"
             else
-              echo "⚠️ Warning: values.yaml not found in $TEMPLATE_PATH"
+              echo "⚠️ Warning: chart/values.yaml not found in $TEMPLATE_PATH"
             fi
 
             # Copy the kustomization.yaml from the template
