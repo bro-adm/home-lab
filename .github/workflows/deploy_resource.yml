@@ -48,7 +48,7 @@ jobs:
           run: |
             TEMPLATE="${{ github.event.inputs.template }}"
             VERSION="${{ github.event.inputs.version }}"
-            PROJECT="${{ github.event.inputs.project }}"
+            PROJECT="$(echo "${{ github.event.inputs.project }}" | tr '[:upper:]' '[:lower:]')"
             NAME="${{ github.event.inputs.name }}"
 
             TEMPLATE_PATH="templates/${TEMPLATE}/${VERSION}"
@@ -96,7 +96,7 @@ jobs:
           run: |
             TEMPLATE="${{ github.event.inputs.template }}"
             VERSION="${{ github.event.inputs.version }}"
-            PROJECT="${{ github.event.inputs.project }}"
+            PROJECT="$(echo "${{ github.event.inputs.project }}" | tr '[:upper:]' '[:lower:]')"
             NAME="${{ github.event.inputs.name }}"
             RESOURCE_PATH="resources/${PROJECT}/${NAME}"
             SCRIPT_NAME="gen-values.sh"
@@ -124,8 +124,7 @@ jobs:
               "$RESOURCE_PATH/$SCRIPT_NAME" "$RESOURCE_PATH/values.yaml"
 
             # Patch the resource kustomization.yaml to set namespace
-            NAMESPACE="$(echo "$PROJECT" | tr '[:upper:]' '[:lower:]')"
-            yq e ".helmCharts[].namespace = \"$NAMESPACE\"" -i "$RESOURCE_PATH/kustomization.yaml"
+            yq e ".helmCharts[].namespace = \"$PROJECT\"" -i "$RESOURCE_PATH/kustomization.yaml"
 
         - name: Update project-level kustomization.yaml
           run: |
