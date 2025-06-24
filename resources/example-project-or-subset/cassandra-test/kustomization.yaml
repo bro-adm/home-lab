@@ -1,7 +1,0 @@
-helmCharts:
-  - name: cassandra
-    repo: https://charts.bitnami.com/bitnami
-    version: 12.0.2
-    releaseName: cassandra-dev
-    valuesFile: values.yaml
-    namespace: example-project-or-subset
