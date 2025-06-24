@@ -38,7 +38,7 @@ global:
 
 ## @param nameOverride String to partially override common.names.fullname
 ##
-nameOverride: ""
+nameOverride: "my-cassandra"
 ## @param fullnameOverride String to fully override common.names.fullname
 ##
 fullnameOverride: ""
@@ -184,9 +184,6 @@ dynamicSeedDiscovery:
     ##   - myRegistryKeySecretName
     ##
     pullSecrets: []
-
-
-
 cluster:
   name: cassandra
   seedCount: 1
@@ -202,7 +199,6 @@ cluster:
   ##
   extraSeeds: []
   enableUDF: false
-
 ## JVM Settings
 ## @param jvm.extraOpts Set the value for Java Virtual Machine extra options
 ## @param jvm.maxHeapSize Set Java Virtual Machine maximum heap size (MAX_HEAP_SIZE). Calculated automatically if `nil`
