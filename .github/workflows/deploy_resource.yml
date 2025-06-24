@@ -128,7 +128,7 @@ jobs:
 
         - name: Update project-level kustomization.yaml
           run: |
-            PROJECT="${{ github.event.inputs.project }}"
+            PROJECT="$(echo "${{ github.event.inputs.project }}" | tr '[:upper:]' '[:lower:]')"
             PROJECT_PATH="resources/${PROJECT}"
 
             echo "resources:" > "${PROJECT_PATH}/kustomization.yaml"
