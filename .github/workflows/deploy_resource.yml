@@ -124,7 +124,8 @@ jobs:
               "$RESOURCE_PATH/$SCRIPT_NAME" "$RESOURCE_PATH/values.yaml"
 
             # Patch the resource kustomization.yaml to set namespace
-            yq e ".helmCharts[].namespace = \"$PROJECT\"" -i "$RESOURCE_PATH/kustomization.yaml"
+            NAMESPACE="$(echo "$PROJECT" | tr '[:upper:]' '[:lower:]')"
+            yq e ".helmCharts[].namespace = \"$NAMESPACE\"" -i "$RESOURCE_PATH/kustomization.yaml"
 
         - name: Update project-level kustomization.yaml
           run: |
