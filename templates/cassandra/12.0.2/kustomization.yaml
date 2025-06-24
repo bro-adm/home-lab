@@ -1,6 +1,7 @@
 helmCharts:
   - name: cassandra
     repo: https://charts.bitnami.com/bitnami
-    version: 12.3.5
+    version: 12.0.2
     releaseName: release-name
-    valuesFile: values-file.yaml
+    valuesFile: values.yaml
+    namespace: namespace
