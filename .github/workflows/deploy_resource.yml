@@ -1,0 +1,159 @@
+name: Deploy Resource
+
+on:
+  workflow_dispatch:
+    inputs:
+      template:
+        description: 'Resource Template'
+        required: true
+        type: string
+      version:
+        description: 'Resource Template Version'
+        required: true
+        type: string
+      cluster:
+        description: 'Cluster Name'
+        required: true
+        type: string
+      project:
+        description: 'Destination Project'
+        required: true
+        type: string
+      name:
+        description: 'Resource Name'
+        required: true
+        type: string
+      replicaCount:
+        description: 'Replica Count'
+        required: true
+        type: number
+      seedCount:
+        description: 'Seed Count'
+        required: true
+        type: number
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+
+        - name: Validate and Set Requirements
+          run: |
+            TEMPLATE="${{ github.event.inputs.template }}"
+            VERSION="${{ github.event.inputs.version }}"
+            PROJECT="${{ github.event.inputs.project }}"
+            NAME="${{ github.event.inputs.name }}"
+
+            TEMPLATE_PATH="templates/${TEMPLATE}/${VERSION}"
+            PROJECT_PATH="resources/${PROJECT}"
+            RESOURCE_PATH="${PROJECT_PATH}/${NAME}"
+
+            # Check if the template version directory exists
+            if [ ! -d "$TEMPLATE_PATH" ]; then
+              echo "❌ Error: template version directory '$TEMPLATE_PATH' not found"
+              exit 1
+            fi
+
+            # Create the destination project directory if it doesn't exist
+            if [ ! -d "$PROJECT_PATH" ]; then
+              echo "📁 Creating project directory: $PROJECT_PATH"
+              mkdir -p "$PROJECT_PATH"
+              echo "resources:" > "$PROJECT_PATH/kustomization.yaml"
+            fi
+
+            # Create the destination resource directory if it doesn't exist
+            if [ ! -d "$RESOURCE_PATH" ]; then
+              echo "📁 Creating resource directory: $RESOURCE_PATH"
+              mkdir -p "$RESOURCE_PATH"
+            fi
+
+            # Copy the values.yaml from the template
+            if [ -f "$TEMPLATE_PATH/values.yaml" ]; then
+              echo "📄 Copying values.yaml to $RESOURCE_PATH"
+              cp "$TEMPLATE_PATH/values.yaml" "$RESOURCE_PATH/values.yaml"
+            else
+              echo "⚠️ Warning: values.yaml not found in $TEMPLATE_PATH"
+            fi
+
+            # Copy the kustomization.yaml from the template
+            if [ -f "$TEMPLATE_PATH/kustomization.yaml" ]; then
+              echo "📄 Copying kustomization.yaml to $RESOURCE_PATH"
+              cp "$TEMPLATE_PATH/kustomization.yaml" "$RESOURCE_PATH/kustomization.yaml"
+            else
+              echo "⚠️ Warning: kustomization.yaml not found in $TEMPLATE_PATH"
+            fi
+
+
+      
+        - name: Write inputs and patch kustomization.yaml
+          run: |
+            TEMPLATE="${{ github.event.inputs.template }}"
+            VERSION="${{ github.event.inputs.version }}"
+            PROJECT="${{ github.event.inputs.project }}"
+            NAME="${{ github.event.inputs.name }}"
+            RESOURCE_PATH="resources/${PROJECT}/${NAME}"
+            SCRIPT_NAME="gen-values.sh"
+            TEMPLATE_SCRIPT_PATH="templates/${TEMPLATE}/${VERSION}/${SCRIPT_NAME}"
+
+            if [ ! -f "$TEMPLATE_SCRIPT_PATH" ]; then
+              echo "❌ Error: $SCRIPT_NAME not found in $TEMPLATE_SCRIPT_PATH"
+              exit 1
+            fi
+
+            # Ensure yq is available
+            if ! command -v yq &> /dev/null; then
+              echo "⚙️ Installing yq..."
+              curl -sSL https://github.com/mikefarah/yq/releases/download/v4.15.1/yq_linux_amd64 -o /usr/local/bin/yq
+              chmod +x /usr/local/bin/yq
+            fi
+
+            # Copy and run gen-values.sh
+            cp "$TEMPLATE_SCRIPT_PATH" "$RESOURCE_PATH/$SCRIPT_NAME"
+            chmod +x "$RESOURCE_PATH/$SCRIPT_NAME"
+
+            NAME_OVERRIDE="${NAME}" \
+            REPLICA_COUNT="${{ github.event.inputs.replicaCount }}" \
+            SEED_COUNT="${{ github.event.inputs.seedCount }}" \
+              "$RESOURCE_PATH/$SCRIPT_NAME" "$RESOURCE_PATH/values.yaml"
+
+            # Patch the resource kustomization.yaml to set namespace
+            yq e ".helmCharts[].namespace = \"$PROJECT\"" -i "$RESOURCE_PATH/kustomization.yaml"
+
+        - name: Update project-level kustomization.yaml
+          run: |
+            PROJECT="${{ github.event.inputs.project }}"
+            PROJECT_PATH="resources/${PROJECT}"
+
+            echo "resources:" > "${PROJECT_PATH}/kustomization.yaml"
+
+            for dir in "${PROJECT_PATH}"/*/; do
+              if [ -f "${dir}/kustomization.yaml" ]; then
+                echo "  - $(basename "$dir")" >> "${PROJECT_PATH}/kustomization.yaml"
+              fi
+            done
+
+
+        - name: Create Pull Request
+          id: create-pr
+          uses: peter-evans/create-pull-request@v4
+          with:
+            commit-message: "Deploy ${{ github.event.inputs.template }} '${{ github.event.inputs.name }}' to project '${{ github.event.inputs.project }}'"
+            title: "Deploy ${{ github.event.inputs.template }} '${{ github.event.inputs.name }}' to '${{ github.event.inputs.project }}'"
+            body: |
+              🚀 **Automated Deployment PR**
+
+              This pull request provisions a new resource in the GitOps repo.
+
+              **Resource Details:**
+              - **Template**: `${{ github.event.inputs.template }}`
+              - **Version**: `${{ github.event.inputs.version }}`
+              - **Resource Name**: `${{ github.event.inputs.name }}`
+              - **Project**: `${{ github.event.inputs.project }}`
+              - **Cluster**: `${{ github.event.inputs.cluster }}`
+              - **Replica Count**: `${{ github.event.inputs.replicaCount }}`
+              - **Seed Count**: `${{ github.event.inputs.seedCount }}`
+
+              ---
+              _Created automatically via GitHub Actions._
+            branch: "${{ github.event.inputs.project }}-deploy/${{ github.event.inputs.template }}-${{ github.event.inputs.name }}"
