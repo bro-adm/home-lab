@@ -198,7 +198,7 @@ cluster:
   ##   - hostname/IP
   ##
   extraSeeds: []
-  enableUDF: false
+  enableUDF: true
 ## JVM Settings
 ## @param jvm.extraOpts Set the value for Java Virtual Machine extra options
 ## @param jvm.maxHeapSize Set Java Virtual Machine maximum heap size (MAX_HEAP_SIZE). Calculated automatically if `nil`
