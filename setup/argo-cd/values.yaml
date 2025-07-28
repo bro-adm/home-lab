@@ -696,7 +696,7 @@ controller:
     repository: ""
     # -- Tag to use for the application controller
     # @default -- `""` (defaults to global.image.tag)
-    tag: ""
+    tag: "v3.0.12"
     # -- Image pull policy for the application controller
     # @default -- `""` (defaults to global.image.imagePullPolicy)
     imagePullPolicy: ""
