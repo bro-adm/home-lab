@@ -1,0 +1,7 @@
+helmCharts:
+  - name: etcd
+    repo: https://charts.bitnami.com/bitnami
+    version: 12.0.14
+    releaseName: test
+    valuesFile: values.yaml
+    namespace: namespace
