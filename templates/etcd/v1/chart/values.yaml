@@ -1000,7 +1000,7 @@ serviceAccount:
 preUpgradeJob:
   ## @param preUpgradeJob.enabled Enable running a pre-upgrade job on Helm upgrades that removes obsolete members
   ##
-  enabled: true
+  enabled: false
   ## @param preUpgradeJob.annotations [object] Add annotations to the etcd "pre-upgrade" job
   ##
   annotations: {}
