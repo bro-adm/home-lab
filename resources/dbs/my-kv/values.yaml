@@ -122,7 +122,7 @@ auth:
     create: true
     ## @param auth.rbac.allowNoneAuthentication Allow to use etcd without configuring RBAC authentication
     ##
-    allowNoneAuthentication: true
+    allowNoneAuthentication: false
     ## @param auth.rbac.rootPassword Root user password. The root user is always `root`
     ##
     rootPassword: "adm"
@@ -138,7 +138,7 @@ auth:
   token:
     ## @param auth.token.enabled Enables token authentication
     ##
-    enabled: true
+    enabled: false
     ## @param auth.token.type Authentication token type. Allowed values: 'simple' or 'jwt'
     ## ref: https://etcd.io/docs/latest/op-guide/configuration/#--auth-token
     ##
